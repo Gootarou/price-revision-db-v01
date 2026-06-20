@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { font-family: Arial, sans-serif; margin: 14px; color: #222; }
+      h1 { font-size: 18px; margin: 0 0 12px; }
+      h2 { font-size: 15px; margin: 18px 0 8px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+      .readonly { background: #eaf3f8; border-left: 4px solid #1f4e78; padding: 10px; margin-bottom: 12px; }
+      .warning { background: #fff2cc; border-left: 4px solid #d97706; padding: 10px; margin: 12px 0; font-weight: bold; }
+      .ok { color: #0f766e; font-weight: bold; }
+      .ng { color: #b91c1c; font-weight: bold; }
+      .table-wrap { overflow-x: auto; }
+      table { border-collapse: collapse; width: 100%; min-width: 460px; }
+      th, td { border: 1px solid #ddd; padding: 6px 8px; font-size: 12px; vertical-align: top; }
+      th { background: #f3f4f6; white-space: nowrap; }
+      td.value { word-break: break-word; }
+      .details { min-width: 980px; }
+    </style>
+  </head>
+  <body>
+    <h1>勤務時間根拠確認</h1>
+    <div class="readonly" id="readOnlyMessage"></div>
+    <div id="mismatchWarning" class="warning" style="display:none;">
+      明細側合計とデータ側合計が一致していません。保存して計算を再実行してください。
+    </div>
+
+    <h2>案件情報</h2>
+    <div class="table-wrap"><table id="caseInfo"></table></div>
+
+    <h2>勤務時間根拠サマリー</h2>
+    <div class="table-wrap"><table id="summary"></table></div>
+
+    <h2>勤務時間根拠一覧</h2>
+    <div class="table-wrap"><table id="details" class="details"></table></div>
+
+    <script>
+      const payload = JSON.parse(<?= JSON.stringify(payloadJson) ?>);
+      const caseInfoFields = ['案件ID', 'サービスID', '年度', '契約先名', '現場名', '業務名', '現行単位', '計算結果状態', '確認状態', '文書転記OK', 'エラー内容'];
+      const summaryFields = [
+        ['明細件数', 'detailCount'],
+        ['使用中明細件数', 'activeDetailCount'],
+        ['不使用明細件数', 'inactiveDetailCount'],
+        ['使用中 年間総労働時間 合計', 'activeAnnualWorkTimeTotal'],
+        ['データ_料金改定案件 側の 年間総労働時間_明細合計', 'dataAnnualWorkTimeTotal'],
+        ['明細側合計とデータ側合計の差額', 'difference'],
+        ['一致/不一致の判定', 'judgment'],
+      ];
+      const detailFields = ['明細行番号', '区分', '年間休日', '勤務日数/年', '労働時間/日', '人員/日', '年間総労働時間', '使用有無', '根拠メモ', '備考'];
+
+      function text(value) {
+        if (value === null || typeof value === 'undefined') return '';
+        if (Object.prototype.toString.call(value) === '[object Date]') return value.toLocaleString();
+        return String(value);
+      }
+
+      function appendCell(row, tag, value, className) {
+        const cell = document.createElement(tag);
+        cell.textContent = text(value);
+        if (className) cell.className = className;
+        row.appendChild(cell);
+      }
+
+      function renderKeyValue(tableId, pairs, source) {
+        const table = document.getElementById(tableId);
+        pairs.forEach(function(pair) {
+          const row = document.createElement('tr');
+          appendCell(row, 'th', pair[0]);
+          appendCell(row, 'td', source[pair[1]], 'value');
+          table.appendChild(row);
+        });
+      }
+
+      document.getElementById('readOnlyMessage').textContent = payload.readOnlyMessage;
+      if (!payload.summary.isMatched) {
+        document.getElementById('mismatchWarning').style.display = 'block';
+      }
+      renderKeyValue('caseInfo', caseInfoFields.map(function(field) { return [field, field]; }), payload.caseInfo);
+      renderKeyValue('summary', summaryFields, payload.summary);
+      const judgmentRows = document.querySelectorAll('#summary tr');
+      const judgmentCell = judgmentRows[judgmentRows.length - 1].querySelector('td');
+      judgmentCell.className = payload.summary.isMatched ? 'ok' : 'ng';
+
+      const detailsTable = document.getElementById('details');
+      const headerRow = document.createElement('tr');
+      detailFields.forEach(function(field) { appendCell(headerRow, 'th', field); });
+      detailsTable.appendChild(headerRow);
+      payload.details.forEach(function(detail) {
+        const row = document.createElement('tr');
+        detailFields.forEach(function(field) { appendCell(row, 'td', detail[field], 'value'); });
+        detailsTable.appendChild(row);
+      });
+    </script>
+  </body>
+</html>
