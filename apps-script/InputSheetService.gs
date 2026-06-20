@@ -99,7 +99,6 @@ function initializeInputCaseEditSheet() {
   sheet.clear();
   sheet.getRange(1, 1, sheet.getMaxRows(), sheet.getMaxColumns()).breakApart();
   sheet.setFrozenRows(2);
-  sheet.setFrozenColumns(1);
   sheet.setHiddenGridlines(true);
   sheet.setColumnWidths(1, 1, 190);
   sheet.setColumnWidths(2, 1, 240);
