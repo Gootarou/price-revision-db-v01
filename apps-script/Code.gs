@@ -6,6 +6,8 @@ function onOpen() {
     .createMenu(APP_CONFIG.MENU_NAME)
     .addItem(APP_CONFIG.MENU_INITIAL_SETUP, 'runInitialSetup')
     .addItem(APP_CONFIG.MENU_INPUT_SHEET_INITIALIZE, 'runInputSheetInitialize')
+    .addItem(APP_CONFIG.MENU_SAVE, 'runSave')
+    .addItem(APP_CONFIG.MENU_LOAD_CASE, 'runLoadCase')
     .addToUi();
 }
 
@@ -38,4 +40,19 @@ function runInputSheetInitialize() {
     SpreadsheetApp.getUi().alert('入力画面初期化でエラーが発生しました: ' + error.message);
     throw error;
   }
+}
+
+
+/**
+ * Menu entry point for Phase 3 canonical save.
+ */
+function runSave() {
+  saveInputCaseEdit();
+}
+
+/**
+ * Menu entry point for Phase 3 case load.
+ */
+function runLoadCase() {
+  loadCaseToInputCaseEdit();
 }
