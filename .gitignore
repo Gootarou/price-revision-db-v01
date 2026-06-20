@@ -1,0 +1,15 @@
+# clasp local files
+.clasp.json
+.clasprc.json
+
+# environment / secrets
+.env
+.env.*
+
+# dependencies
+node_modules/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+.vscode/
