@@ -24,9 +24,24 @@ const INPUT_SHEET_STYLE = {
   HEADER_BACKGROUND: '#eeeeee',
   INPUT_BACKGROUND: '#fff2cc',
   READONLY_BACKGROUND: '#eaf3f8',
+  AUTO_BACKGROUND: '#eeeeee',
   RESULT_BACKGROUND: '#eeeeee',
   NOTE_BACKGROUND: '#f7f7f7',
   BORDER_COLOR: '#b7b7b7',
+};
+
+const INPUT_FIELD_BACKGROUND_RULES = {
+  OPERATION: {
+    '年度': INPUT_SHEET_STYLE.INPUT_BACKGROUND,
+    '案件ID': INPUT_SHEET_STYLE.AUTO_BACKGROUND,
+    'サービスID': INPUT_SHEET_STYLE.AUTO_BACKGROUND,
+    '操作メモ欄': INPUT_SHEET_STYLE.INPUT_BACKGROUND,
+  },
+  WORK_TIME: {
+    '明細行番号': INPUT_SHEET_STYLE.AUTO_BACKGROUND,
+    '勤務日数/年': INPUT_SHEET_STYLE.AUTO_BACKGROUND,
+    '年間総労働時間': INPUT_SHEET_STYLE.AUTO_BACKGROUND,
+  },
 };
 
 const INPUT_FIELD_GROUPS = {
@@ -99,6 +114,7 @@ function initializeInputCaseEditSheet() {
   sheet.clear();
   sheet.getRange(1, 1, sheet.getMaxRows(), sheet.getMaxColumns()).breakApart();
   sheet.setFrozenRows(2);
+  sheet.setFrozenColumns(0);
   sheet.setHiddenGridlines(true);
   sheet.setColumnWidths(1, 1, 190);
   sheet.setColumnWidths(2, 1, 240);
@@ -181,7 +197,8 @@ function applyInputSheetLayoutStyle_(sheet) {
     {
       startRow: INPUT_SHEET_LAYOUT.OPERATION_START_ROW,
       fields: INPUT_FIELD_GROUPS.OPERATION,
-      inputBackground: INPUT_SHEET_STYLE.READONLY_BACKGROUND,
+      inputBackground: INPUT_SHEET_STYLE.INPUT_BACKGROUND,
+      fieldBackgrounds: INPUT_FIELD_BACKGROUND_RULES.OPERATION,
     },
     {
       startRow: INPUT_SHEET_LAYOUT.BASIC_START_ROW,
@@ -201,12 +218,13 @@ function applyInputSheetLayoutStyle_(sheet) {
   ];
 
   verticalSections.forEach(function(section) {
-    applyVerticalInputSectionStyle_(sheet, section.startRow, section.fields.length, section.inputBackground);
+    applyVerticalInputSectionStyle_(sheet, section.startRow, section.fields, section.inputBackground, section.fieldBackgrounds);
   });
   applyWorkTimeInputSectionStyle_(sheet);
 }
 
-function applyVerticalInputSectionStyle_(sheet, startRow, fieldCount, inputBackground) {
+function applyVerticalInputSectionStyle_(sheet, startRow, fields, inputBackground, fieldBackgrounds) {
+  const fieldCount = fields.length;
   sheet.getRange(startRow, 1, 1, 3)
     .merge()
     .setBackground(INPUT_SHEET_STYLE.SECTION_BACKGROUND)
@@ -224,8 +242,11 @@ function applyVerticalInputSectionStyle_(sheet, startRow, fieldCount, inputBackg
   sheet.getRange(startRow + 2, 1, fieldCount, 1)
     .setBackground(INPUT_SHEET_STYLE.READONLY_BACKGROUND)
     .setFontWeight('bold');
+  const inputBackgrounds = fields.map(function(field) {
+    return [fieldBackgrounds && fieldBackgrounds[field] ? fieldBackgrounds[field] : inputBackground];
+  });
   sheet.getRange(startRow + 2, INPUT_SHEET_LAYOUT.INPUT_COLUMN, fieldCount, 1)
-    .setBackground(inputBackground);
+    .setBackgrounds(inputBackgrounds);
   sheet.getRange(startRow + 2, INPUT_SHEET_LAYOUT.NOTE_COLUMN, fieldCount, 1)
     .setBackground(INPUT_SHEET_STYLE.NOTE_BACKGROUND);
   sheet.getRange(startRow + 2, 1, fieldCount, 3)
@@ -259,8 +280,11 @@ function applyWorkTimeInputSectionStyle_(sheet) {
     .setBackground(INPUT_SHEET_STYLE.INPUT_BACKGROUND)
     .setVerticalAlignment('middle')
     .setWrap(true);
-  sheet.getRange(detailStartRow, 1, dataRows, 1)
-    .setBackground(INPUT_SHEET_STYLE.READONLY_BACKGROUND);
+  INPUT_FIELD_GROUPS.WORK_TIME.forEach(function(field, index) {
+    const background = INPUT_FIELD_BACKGROUND_RULES.WORK_TIME[field] || INPUT_SHEET_STYLE.INPUT_BACKGROUND;
+    sheet.getRange(detailStartRow, index + 1, dataRows, 1)
+      .setBackground(background);
+  });
   sheet.setRowHeights(detailStartRow, dataRows, 26);
 }
 
