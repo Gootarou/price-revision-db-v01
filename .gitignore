@@ -1,6 +1,8 @@
 # clasp local files
 .clasp.json
+**/.clasp.json
 .clasprc.json
+**/.clasprc.json
 
 # environment / secrets
 .env
