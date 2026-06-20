@@ -10,6 +10,7 @@ function onOpen() {
     .addItem(APP_CONFIG.MENU_LOAD_CASE, 'runLoadCase')
     .addItem(APP_CONFIG.MENU_SAVE_AND_CALCULATE, 'runSaveAndCalculate')
     .addItem(APP_CONFIG.MENU_WORK_TIME_BASIS_CHECK, 'runWorkTimeBasisCheck')
+    .addItem(APP_CONFIG.MENU_DOCUMENT_TRANSFER_CHECK_UPDATE, 'runDocumentTransferCheckUpdate')
     .addToUi();
 }
 
@@ -72,4 +73,12 @@ function runSaveAndCalculate() {
  */
 function runWorkTimeBasisCheck() {
   showWorkTimeBasisSidebar();
+}
+
+
+/**
+ * Menu entry point for Phase 6 document transfer pre-check view regeneration.
+ */
+function runDocumentTransferCheckUpdate() {
+  updateDocumentTransferCheckView();
 }

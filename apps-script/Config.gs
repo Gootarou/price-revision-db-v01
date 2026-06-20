@@ -10,6 +10,7 @@ const APP_CONFIG = {
   MENU_LOAD_CASE: '案件読込',
   MENU_SAVE_AND_CALCULATE: '保存して計算',
   MENU_WORK_TIME_BASIS_CHECK: '勤務時間根拠を確認',
+  MENU_DOCUMENT_TRANSFER_CHECK_UPDATE: '文書転記前確認を更新',
 };
 
 const SHEETS = {
