@@ -73,3 +73,54 @@ function getHeaderMap(sheet) {
     return map;
   }, {});
 }
+
+function findRowByHeaderValue_(sheet, headerName, targetValue) {
+  const headerMap = getHeaderMap(sheet);
+  const column = headerMap[headerName];
+  const lastRow = sheet.getLastRow();
+  if (!column || lastRow < 2) {
+    return null;
+  }
+  const values = sheet.getRange(2, column, lastRow - 1, 1).getValues();
+  for (let i = 0; i < values.length; i += 1) {
+    if (String(values[i][0]) === String(targetValue)) {
+      return i + 2;
+    }
+  }
+  return null;
+}
+
+function setRowFields_(sheet, row, fieldValues) {
+  const headerMap = getHeaderMap(sheet);
+  Object.keys(fieldValues).forEach(function(header) {
+    if (headerMap[header]) {
+      sheet.getRange(row, headerMap[header]).setValue(fieldValues[header]);
+    }
+  });
+}
+
+function getRowObject_(sheet, row) {
+  const headerMap = getHeaderMap(sheet);
+  const values = sheet.getRange(row, 1, 1, sheet.getLastColumn()).getValues()[0];
+  return rowValuesToObject_(headerMap, values);
+}
+
+function rowValuesToObject_(headerMap, values) {
+  return Object.keys(headerMap).reduce(function(result, header) {
+    result[header] = values[headerMap[header] - 1];
+    return result;
+  }, {});
+}
+
+function deleteRowsByHeaderValue_(sheet, headerName, targetValue) {
+  const headerMap = getHeaderMap(sheet);
+  const column = headerMap[headerName];
+  if (!column) {
+    return;
+  }
+  for (let row = sheet.getLastRow(); row >= 2; row -= 1) {
+    if (String(sheet.getRange(row, column).getValue()) === String(targetValue)) {
+      sheet.deleteRow(row);
+    }
+  }
+}

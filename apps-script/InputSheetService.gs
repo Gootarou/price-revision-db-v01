@@ -323,3 +323,57 @@ function readWorkTimeInputSection_(sheet) {
       }, {});
     });
 }
+
+function setInputCaseEditIds(caseId, serviceId) {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = spreadsheet.getSheetByName(SHEETS.INPUT_CASE_EDIT);
+  if (!sheet) {
+    throw new Error('入力画面が見つかりません。入力画面初期化を実行してください。');
+  }
+  setVerticalInputSectionValues_(sheet, INPUT_SHEET_LAYOUT.OPERATION_START_ROW, INPUT_FIELD_GROUPS.OPERATION, {
+    '案件ID': caseId,
+    'サービスID': serviceId,
+  });
+}
+
+function setInputCaseEditValues(caseRecord, workTimeDetails) {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = spreadsheet.getSheetByName(SHEETS.INPUT_CASE_EDIT);
+  if (!sheet) {
+    initializeInputCaseEditSheet();
+    sheet = spreadsheet.getSheetByName(SHEETS.INPUT_CASE_EDIT);
+  }
+
+  setVerticalInputSectionValues_(sheet, INPUT_SHEET_LAYOUT.OPERATION_START_ROW, INPUT_FIELD_GROUPS.OPERATION, {
+    '年度': caseRecord['年度'],
+    '案件ID': caseRecord['案件ID'],
+    'サービスID': caseRecord['サービスID'],
+  });
+  setVerticalInputSectionValues_(sheet, INPUT_SHEET_LAYOUT.BASIC_START_ROW, INPUT_FIELD_GROUPS.BASIC, caseRecord);
+  setVerticalInputSectionValues_(sheet, INPUT_SHEET_LAYOUT.CONDITIONS_START_ROW, INPUT_FIELD_GROUPS.CONDITIONS, caseRecord);
+  setWorkTimeInputSectionValues_(sheet, workTimeDetails || []);
+  spreadsheet.setActiveSheet(sheet);
+}
+
+function setVerticalInputSectionValues_(sheet, startRow, fields, values) {
+  fields.forEach(function(field, index) {
+    if (Object.prototype.hasOwnProperty.call(values, field)) {
+      sheet.getRange(startRow + 2 + index, INPUT_SHEET_LAYOUT.INPUT_COLUMN).setValue(values[field]);
+    }
+  });
+}
+
+function setWorkTimeInputSectionValues_(sheet, workTimeDetails) {
+  const fields = INPUT_FIELD_GROUPS.WORK_TIME;
+  const rows = [];
+  for (let i = 0; i < INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_ROWS; i += 1) {
+    const detail = workTimeDetails[i] || {};
+    rows.push(fields.map(function(field) {
+      if (Object.prototype.hasOwnProperty.call(detail, field)) {
+        return detail[field];
+      }
+      return field === '使用有無' ? ACTIVE_STATUS.ACTIVE : '';
+    }));
+  }
+  sheet.getRange(INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_START_ROW, 1, INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_ROWS, fields.length).setValues(rows);
+}
