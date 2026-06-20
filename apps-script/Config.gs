@@ -5,6 +5,7 @@
 const APP_CONFIG = {
   MENU_NAME: '料金改定DB',
   MENU_INITIAL_SETUP: '初期セットアップ',
+  MENU_INPUT_SHEET_INITIALIZE: '入力画面初期化',
 };
 
 const SHEETS = {

@@ -5,6 +5,7 @@ function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu(APP_CONFIG.MENU_NAME)
     .addItem(APP_CONFIG.MENU_INITIAL_SETUP, 'runInitialSetup')
+    .addItem(APP_CONFIG.MENU_INPUT_SHEET_INITIALIZE, 'runInputSheetInitialize')
     .addToUi();
 }
 
@@ -19,6 +20,22 @@ function runInitialSetup() {
   } catch (error) {
     writeProcessLog('初期セットアップ', '', LOG_RESULT.ERROR, error.message);
     SpreadsheetApp.getUi().alert('初期セットアップでエラーが発生しました: ' + error.message);
+    throw error;
+  }
+}
+
+
+/**
+ * Menu entry point for Phase 2 input/edit screen initialization.
+ */
+function runInputSheetInitialize() {
+  try {
+    initializeInputCaseEditSheet();
+    writeProcessLog('入力画面初期化', '', LOG_RESULT.OK, SHEETS.INPUT_CASE_EDIT + ' の入力・編集画面を初期化しました。');
+    SpreadsheetApp.getUi().alert('入力画面初期化が完了しました。');
+  } catch (error) {
+    writeProcessLog('入力画面初期化', '', LOG_RESULT.ERROR, error.message);
+    SpreadsheetApp.getUi().alert('入力画面初期化でエラーが発生しました: ' + error.message);
     throw error;
   }
 }
