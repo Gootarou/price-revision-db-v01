@@ -8,6 +8,7 @@ const APP_CONFIG = {
   MENU_INPUT_SHEET_INITIALIZE: '入力画面初期化',
   MENU_SAVE: '保存',
   MENU_LOAD_CASE: '案件読込',
+  MENU_SAVE_AND_CALCULATE: '保存して計算',
 };
 
 const SHEETS = {

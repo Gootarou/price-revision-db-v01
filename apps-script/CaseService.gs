@@ -5,22 +5,53 @@ function saveInputCaseEdit() {
   const values = getInputCaseEditValues();
   const caseIdForLog = values.operation['案件ID'] || '';
   try {
-    validateRequiredInput_(values);
-    const ids = resolveInputIds_(values);
-    const now = new Date();
-
-    upsertMasterService_(values, ids.serviceId, now);
-    upsertPriceRevisionCase_(values, ids, now);
-    replaceWorkTimeBasisDetails_(values, ids, now);
-    setInputCaseEditIds(ids.caseId, ids.serviceId);
-
+    const ids = saveInputCaseEditCore_(values);
     writeProcessLog('保存成功', ids.caseId, LOG_RESULT.OK, '入力画面の内容を正本シートへ保存しました。');
     SpreadsheetApp.getUi().alert('保存が完了しました。\n案件ID: ' + ids.caseId + '\nサービスID: ' + ids.serviceId);
+    return ids;
   } catch (error) {
     writeProcessLog('保存失敗', caseIdForLog, LOG_RESULT.ERROR, error.message);
     SpreadsheetApp.getUi().alert('保存でエラーが発生しました: ' + error.message);
     throw error;
   }
+}
+
+function saveAndCalculateInputCaseEdit() {
+  const values = getInputCaseEditValues();
+  const caseIdForLog = values.operation['案件ID'] || '';
+  let ids = null;
+  try {
+    ids = saveInputCaseEditCore_(values);
+    writeProcessLog('保存成功', ids.caseId, LOG_RESULT.OK, '入力画面の内容を正本シートへ保存しました。');
+    const calculatedRecord = calculatePriceRevisionCase(ids.caseId);
+    setInputCaseEditCalculationResults(calculatedRecord);
+    writeProcessLog('保存して計算成功', ids.caseId, LOG_RESULT.OK, '保存後に計算結果を入力画面へ反映しました。');
+    SpreadsheetApp.getUi().alert('保存して計算が完了しました。\n案件ID: ' + ids.caseId);
+    return calculatedRecord;
+  } catch (error) {
+    const targetCaseId = ids ? ids.caseId : caseIdForLog;
+    if (targetCaseId) {
+      const errorRecord = findCaseById_(targetCaseId);
+      if (errorRecord) {
+        setInputCaseEditCalculationResults(errorRecord);
+      }
+    }
+    writeProcessLog('保存して計算失敗', targetCaseId, LOG_RESULT.ERROR, error.message);
+    SpreadsheetApp.getUi().alert('保存して計算でエラーが発生しました: ' + error.message);
+    throw error;
+  }
+}
+
+function saveInputCaseEditCore_(values) {
+  validateRequiredInput_(values);
+  const ids = resolveInputIds_(values);
+  const now = new Date();
+
+  upsertMasterService_(values, ids.serviceId, now);
+  upsertPriceRevisionCase_(values, ids, now);
+  replaceWorkTimeBasisDetails_(values, ids, now);
+  setInputCaseEditIds(ids.caseId, ids.serviceId);
+  return ids;
 }
 
 function loadCaseToInputCaseEdit() {
@@ -108,6 +139,7 @@ function upsertPriceRevisionCase_(values, ids, now) {
   const sheet = getCanonicalSheet_(SHEETS.DATA_PRICE_REVISION_CASE);
   const row = findRowByHeaderValue_(sheet, '案件ID', ids.caseId) || sheet.getLastRow() + 1;
   const isNew = row > sheet.getLastRow();
+  const existingRecord = isNew ? {} : getRowObject_(sheet, row);
   setRowFields_(sheet, row, {
     '年度': values.operation['年度'],
     '案件ID': ids.caseId,
@@ -127,7 +159,7 @@ function upsertPriceRevisionCase_(values, ids, now) {
     '端数処理方式': values.conditions['端数処理方式'],
     '手動調整額': values.conditions['手動調整額'],
     '調整理由': values.conditions['調整理由'],
-    '交渉状況': NEGOTIATION_STATUS.NOT_SUBMITTED,
+    '交渉状況': existingRecord['交渉状況'] || NEGOTIATION_STATUS.NOT_SUBMITTED,
     '計算結果状態': CALCULATION_STATUS.NOT_CALCULATED,
     '確認状態': CONFIRMATION_STATUS.NOT_CONFIRMED,
     '文書転記OK': TRANSFER_STATUS.NG,

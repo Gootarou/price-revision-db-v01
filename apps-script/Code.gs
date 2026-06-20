@@ -8,6 +8,7 @@ function onOpen() {
     .addItem(APP_CONFIG.MENU_INPUT_SHEET_INITIALIZE, 'runInputSheetInitialize')
     .addItem(APP_CONFIG.MENU_SAVE, 'runSave')
     .addItem(APP_CONFIG.MENU_LOAD_CASE, 'runLoadCase')
+    .addItem(APP_CONFIG.MENU_SAVE_AND_CALCULATE, 'runSaveAndCalculate')
     .addToUi();
 }
 
@@ -55,4 +56,12 @@ function runSave() {
  */
 function runLoadCase() {
   loadCaseToInputCaseEdit();
+}
+
+
+/**
+ * Menu entry point for Phase 4 save and monthly calculation.
+ */
+function runSaveAndCalculate() {
+  saveAndCalculateInputCaseEdit();
 }

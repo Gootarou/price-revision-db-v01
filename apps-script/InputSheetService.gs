@@ -389,3 +389,12 @@ function setWorkTimeInputSectionValues_(sheet, workTimeDetails) {
   }
   sheet.getRange(INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_START_ROW, 1, INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_ROWS, fields.length).setValues(rows);
 }
+
+function setInputCaseEditCalculationResults(caseRecord) {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = spreadsheet.getSheetByName(SHEETS.INPUT_CASE_EDIT);
+  if (!sheet) {
+    throw new Error('入力画面が見つかりません。入力画面初期化を実行してください。');
+  }
+  setVerticalInputSectionValuesWithBlank_(sheet, INPUT_SHEET_LAYOUT.RESULT_START_ROW, INPUT_FIELD_GROUPS.RESULTS, caseRecord);
+}
