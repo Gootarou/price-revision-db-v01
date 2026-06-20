@@ -202,9 +202,20 @@ function determineDocumentTransferStatus_(record) {
 }
 
 function requireNumber_(value, label) {
-  if (value === '' || value === null || typeof value === 'undefined') throw new Error(label + 'が未入力です。');
+  if (value === null || typeof value === 'undefined') {
+    throw new Error(label + 'が未入力です。');
+  }
+  if (typeof value === 'string' && value.trim() === '') {
+    throw new Error(label + 'が未入力です。');
+  }
+  if (value === '') {
+    throw new Error(label + 'が未入力です。');
+  }
+
   const numberValue = Number(value);
-  if (isNaN(numberValue)) throw new Error(label + 'が数値ではありません。');
+  if (!Number.isFinite(numberValue)) {
+    throw new Error(label + 'が数値ではありません。');
+  }
   return numberValue;
 }
 
