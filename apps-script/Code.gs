@@ -9,6 +9,7 @@ function onOpen() {
     .addItem(APP_CONFIG.MENU_SAVE, 'runSave')
     .addItem(APP_CONFIG.MENU_LOAD_CASE, 'runLoadCase')
     .addItem(APP_CONFIG.MENU_SAVE_AND_CALCULATE, 'runSaveAndCalculate')
+    .addItem(APP_CONFIG.MENU_WORK_TIME_BASIS_CHECK, 'runWorkTimeBasisCheck')
     .addToUi();
 }
 
@@ -64,4 +65,11 @@ function runLoadCase() {
  */
 function runSaveAndCalculate() {
   saveAndCalculateInputCaseEdit();
+}
+
+/**
+ * Menu entry point for Phase 5 read-only work time basis sidebar.
+ */
+function runWorkTimeBasisCheck() {
+  showWorkTimeBasisSidebar();
 }

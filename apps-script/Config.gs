@@ -9,6 +9,7 @@ const APP_CONFIG = {
   MENU_SAVE: '保存',
   MENU_LOAD_CASE: '案件読込',
   MENU_SAVE_AND_CALCULATE: '保存して計算',
+  MENU_WORK_TIME_BASIS_CHECK: '勤務時間根拠を確認',
 };
 
 const SHEETS = {
