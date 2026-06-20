@@ -35,7 +35,7 @@
     <div class="table-wrap"><table id="details" class="details"></table></div>
 
     <script>
-      const payload = JSON.parse(<?= JSON.stringify(payloadJson) ?>);
+      const payload = <?!= payloadJson ?>;
       const caseInfoFields = ['案件ID', 'サービスID', '年度', '契約先名', '現場名', '業務名', '現行単位', '計算結果状態', '確認状態', '文書転記OK', 'エラー内容'];
       const summaryFields = [
         ['明細件数', 'detailCount'],
