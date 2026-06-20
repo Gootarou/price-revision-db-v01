@@ -351,6 +351,7 @@ function setInputCaseEditValues(caseRecord, workTimeDetails) {
   });
   setVerticalInputSectionValues_(sheet, INPUT_SHEET_LAYOUT.BASIC_START_ROW, INPUT_FIELD_GROUPS.BASIC, caseRecord);
   setVerticalInputSectionValues_(sheet, INPUT_SHEET_LAYOUT.CONDITIONS_START_ROW, INPUT_FIELD_GROUPS.CONDITIONS, caseRecord);
+  setVerticalInputSectionValuesWithBlank_(sheet, INPUT_SHEET_LAYOUT.RESULT_START_ROW, INPUT_FIELD_GROUPS.RESULTS, caseRecord);
   setWorkTimeInputSectionValues_(sheet, workTimeDetails || []);
   spreadsheet.setActiveSheet(sheet);
 }
@@ -361,6 +362,17 @@ function setVerticalInputSectionValues_(sheet, startRow, fields, values) {
       sheet.getRange(startRow + 2 + index, INPUT_SHEET_LAYOUT.INPUT_COLUMN).setValue(values[field]);
     }
   });
+}
+
+
+function setVerticalInputSectionValuesWithBlank_(sheet, startRow, fields, values) {
+  const rows = fields.map(function(field) {
+    if (Object.prototype.hasOwnProperty.call(values, field)) {
+      return [values[field]];
+    }
+    return [''];
+  });
+  sheet.getRange(startRow + 2, INPUT_SHEET_LAYOUT.INPUT_COLUMN, fields.length, 1).setValues(rows);
 }
 
 function setWorkTimeInputSectionValues_(sheet, workTimeDetails) {

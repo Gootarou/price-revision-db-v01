@@ -39,6 +39,7 @@ function loadCaseToInputCaseEdit() {
     }
 
     const workTimeDetails = findWorkTimeDetailsByCaseId_(caseId);
+    validateWorkTimeDetailsFitInputSheet_(workTimeDetails, caseId);
     setInputCaseEditValues(caseRecord, workTimeDetails);
     writeProcessLog('読込成功', caseId, LOG_RESULT.OK, '正本シートから入力画面へ読み込みました。');
     SpreadsheetApp.getUi().alert('案件読込が完了しました。\n案件ID: ' + caseId);
@@ -46,6 +47,17 @@ function loadCaseToInputCaseEdit() {
     writeProcessLog('読込失敗', caseId, LOG_RESULT.ERROR, error.message);
     SpreadsheetApp.getUi().alert('案件読込でエラーが発生しました: ' + error.message);
     throw error;
+  }
+}
+
+
+function validateWorkTimeDetailsFitInputSheet_(workTimeDetails, caseId) {
+  const displayableRows = INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_ROWS;
+  const actualRows = (workTimeDetails || []).length;
+  if (actualRows > displayableRows) {
+    const message = '勤務時間根拠が表示可能行数を超えています。表示可能行数: ' + displayableRows + '、実明細数: ' + actualRows;
+    writeProcessLog('読込失敗', caseId, LOG_RESULT.ERROR, message);
+    throw new Error(message);
   }
 }
 
