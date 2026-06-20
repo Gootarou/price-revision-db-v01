@@ -155,7 +155,7 @@ function applyInputSheetNumberFormats_(sheet) {
   sheet.getRange('B25:B25').setNumberFormat('#,##0');
   sheet.getRange('B28:B28').setNumberFormat('#,##0');
   sheet.getRange('C34:G43').setNumberFormat('#,##0.00');
-  sheet.getRange('B49:B64').setNumberFormat('#,##0.00');
+  sheet.getRange('B49:B62').setNumberFormat('#,##0.00');
 }
 
 function readVerticalInputSection_(sheet, startRow, fields) {
@@ -174,8 +174,8 @@ function readWorkTimeInputSection_(sheet) {
 
   return rows
     .filter(function(row) {
-      return row.some(function(value) {
-        return value !== '';
+      return row.some(function(value, index) {
+        return fields[index] !== '使用有無' && value !== '';
       });
     })
     .map(function(row) {
