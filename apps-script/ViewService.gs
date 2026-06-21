@@ -136,7 +136,12 @@ function isDocumentTransferCheckDateColumn_(header) {
 }
 
 function isDocumentTransferCheckDecimalColumn_(header) {
-  return ['法定福利費計算倍率'].indexOf(header) !== -1;
+  return [
+    '法定福利費計算倍率',
+    '現行時間単価',
+    '最終提案時間単価',
+    '時間単価差額',
+  ].indexOf(header) !== -1;
 }
 
 function isDocumentTransferCheckIntegerColumn_(header) {

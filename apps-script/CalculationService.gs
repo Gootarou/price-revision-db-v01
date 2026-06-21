@@ -58,6 +58,9 @@ function calculatePriceRevisionCase(caseId) {
     const finalProposalPrice = currentMonthlyEquivalent + monthlyIncrease;
     const proposedMonthlyEquivalent = finalProposalPrice;
     const proposedAnnualEquivalent = proposedMonthlyEquivalent * 12;
+    const currentHourlyRate = currentAnnualEquivalent / workTimeTotal;
+    const finalProposalHourlyRate = proposedAnnualEquivalent / workTimeTotal;
+    const hourlyRateDifference = finalProposalHourlyRate - currentHourlyRate;
 
     const result = buildCalculationBaseResult_(caseRecord, now);
     Object.assign(result, {
@@ -79,6 +82,9 @@ function calculatePriceRevisionCase(caseId) {
       '最終提案料金': finalProposalPrice,
       '提案月額換算': proposedMonthlyEquivalent,
       '提案年額換算': proposedAnnualEquivalent,
+      '現行時間単価': currentHourlyRate,
+      '最終提案時間単価': finalProposalHourlyRate,
+      '時間単価差額': hourlyRateDifference,
       '計算結果状態': CALCULATION_STATUS.OK,
       'エラー内容': '',
     });
@@ -127,6 +133,9 @@ function blankCalculationResultFields_(result) {
     '最終提案料金',
     '提案月額換算',
     '提案年額換算',
+    '現行時間単価',
+    '最終提案時間単価',
+    '時間単価差額',
   ].forEach(function(field) {
     result[field] = '';
   });
@@ -183,9 +192,13 @@ function sumActiveWorkTimeTotal_(caseId) {
   if (details.length === 0) {
     throw new CalculationNamedError_('勤務時間根拠未登録', '使用対象の勤務時間根拠がありません。明細_勤務時間根拠 または 入力_案件編集 の勤務時間根拠で、使用有無が「使用」の行を1件以上登録してください。');
   }
-  return details.reduce(function(total, detail) {
-    return total + requireWorkTimeTotal_(detail['年間総労働時間']);
+  const total = details.reduce(function(sum, detail) {
+    return sum + requireWorkTimeTotal_(detail['年間総労働時間']);
   }, 0);
+  if (total <= 0) {
+    throw new CalculationNamedError_('勤務時間根拠未登録', '使用対象の年間総労働時間合計が0以下です。使用有無が「使用」の明細行には0より大きい年間総労働時間を入力してください。');
+  }
+  return total;
 }
 
 function requireWorkTimeTotal_(value) {
