@@ -138,6 +138,9 @@ function initializeInputCaseEditSheet() {
   buildWorkTimeInputSection_(sheet);
   buildVerticalInputSection_(sheet, INPUT_SHEET_LAYOUT.RESULT_START_ROW, '計算結果表示エリア', INPUT_FIELD_GROUPS.RESULTS);
 
+  applyInputSheetDefaults_(sheet);
+  applyWorkTimeHelperFormulas_(sheet, []);
+  applyInputSheetDataValidations_(sheet);
   applyInputSheetNumberFormats_(sheet);
   applyInputSheetLayoutStyle_(sheet);
   spreadsheet.setActiveSheet(sheet);
@@ -356,6 +359,52 @@ function setInputCaseEditValues(caseRecord, workTimeDetails) {
   spreadsheet.setActiveSheet(sheet);
 }
 
+function applyInputSheetDefaults_(sheet) {
+  setVerticalInputSectionValues_(sheet, INPUT_SHEET_LAYOUT.BASIC_START_ROW, INPUT_FIELD_GROUPS.BASIC, {
+    '業務種別': BUSINESS_TYPE_OPTIONS[0],
+  });
+  setVerticalInputSectionValues_(sheet, INPUT_SHEET_LAYOUT.CONDITIONS_START_ROW, INPUT_FIELD_GROUPS.CONDITIONS, {
+    '現行単位': PRICE_UNIT_OPTIONS[0],
+    '端数処理方式': ROUNDING_METHOD.NONE,
+  });
+}
+
+function applyInputSheetDataValidations_(sheet) {
+  applyVerticalInputValidation_(sheet, INPUT_SHEET_LAYOUT.BASIC_START_ROW, INPUT_FIELD_GROUPS.BASIC, '業務種別', BUSINESS_TYPE_OPTIONS);
+  applyVerticalInputValidation_(sheet, INPUT_SHEET_LAYOUT.CONDITIONS_START_ROW, INPUT_FIELD_GROUPS.CONDITIONS, '現行単位', PRICE_UNIT_OPTIONS);
+  applyVerticalInputValidation_(sheet, INPUT_SHEET_LAYOUT.CONDITIONS_START_ROW, INPUT_FIELD_GROUPS.CONDITIONS, '端数処理方式', ROUNDING_METHOD_OPTIONS);
+
+  const activeStatusColumn = INPUT_FIELD_GROUPS.WORK_TIME.indexOf('使用有無') + 1;
+  sheet.getRange(INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_START_ROW, activeStatusColumn, INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_ROWS, 1)
+    .setDataValidation(buildListValidation_(ACTIVE_STATUS_OPTIONS));
+}
+
+function applyVerticalInputValidation_(sheet, startRow, fields, field, options) {
+  const fieldIndex = fields.indexOf(field);
+  if (fieldIndex === -1) return;
+  sheet.getRange(startRow + 2 + fieldIndex, INPUT_SHEET_LAYOUT.INPUT_COLUMN)
+    .setDataValidation(buildListValidation_(options));
+}
+
+function buildListValidation_(options) {
+  return SpreadsheetApp.newDataValidation()
+    .requireValueInList(options, true)
+    .setAllowInvalid(false)
+    .build();
+}
+
+function applyWorkTimeHelperFormulas_(sheet, rowsWithSavedDetails) {
+  const detailStartRow = INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_START_ROW;
+  const workDaysColumn = INPUT_FIELD_GROUPS.WORK_TIME.indexOf('勤務日数/年') + 1;
+  const annualHoursColumn = INPUT_FIELD_GROUPS.WORK_TIME.indexOf('年間総労働時間') + 1;
+  for (let i = 0; i < INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_ROWS; i += 1) {
+    if (rowsWithSavedDetails && rowsWithSavedDetails[i]) continue;
+    const row = detailStartRow + i;
+    sheet.getRange(row, workDaysColumn).setFormulaR1C1('=IF(RC[-1]="","",365-RC[-1])');
+    sheet.getRange(row, annualHoursColumn).setFormulaR1C1('=IF(OR(RC[-3]="",RC[-2]="",RC[-1]=""),"",RC[-3]*RC[-2]*RC[-1])');
+  }
+}
+
 function setVerticalInputSectionValues_(sheet, startRow, fields, values) {
   fields.forEach(function(field, index) {
     if (Object.prototype.hasOwnProperty.call(values, field)) {
@@ -388,6 +437,8 @@ function setWorkTimeInputSectionValues_(sheet, workTimeDetails) {
     }));
   }
   sheet.getRange(INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_START_ROW, 1, INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_ROWS, fields.length).setValues(rows);
+  applyWorkTimeHelperFormulas_(sheet, workTimeDetails || []);
+  applyInputSheetDataValidations_(sheet);
 }
 
 function setInputCaseEditCalculationResults(caseRecord) {
