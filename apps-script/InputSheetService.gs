@@ -97,6 +97,9 @@ const INPUT_FIELD_GROUPS = {
     '最終提案料金',
     '提案月額換算',
     '提案年額換算',
+    '現行時間単価',
+    '最終提案時間単価',
+    '時間単価差額',
     '計算結果状態',
     '確認状態',
     '文書転記OK',
@@ -297,7 +300,7 @@ function applyInputSheetNumberFormats_(sheet) {
   sheet.getRange('B25:B25').setNumberFormat('#,##0');
   sheet.getRange('B28:B28').setNumberFormat('#,##0');
   sheet.getRange('C34:G43').setNumberFormat('#,##0.00');
-  sheet.getRange('B49:B62').setNumberFormat('#,##0.00');
+  sheet.getRange('B49:B65').setNumberFormat('#,##0.00');
 }
 
 function readVerticalInputSection_(sheet, startRow, fields) {
