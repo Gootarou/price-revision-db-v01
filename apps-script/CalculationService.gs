@@ -25,9 +25,16 @@ function calculatePriceRevisionCase(caseId) {
     const previousRevisionStartDate = requireDate_(caseRecord['前回改定開始日'], '前回改定開始日');
     const currentRevisionStartDate = requireDate_(caseRecord['今回改定開始日'], '今回改定開始日');
     const currentPrice = requireNumber_(caseRecord['現行料金'], '現行料金');
-    const site = findSiteById_(caseRecord['現場ID']);
-    if (!site || !site['都道府県']) {
-      throw new CalculationNamedError_('最低賃金未登録', '対象現場の都道府県が見つかりません。現場ID: ' + caseRecord['現場ID']);
+    const siteId = caseRecord['現場ID'];
+    if (String(siteId || '').trim() === '') {
+      throw new CalculationNamedError_('最低賃金未登録', '現場IDが未入力のため、都道府県を特定できません。入力_案件編集 または データ_料金改定案件 の現場IDを入力し、マスタ_現場に都道府県を登録してください。');
+    }
+    const site = findSiteById_(siteId);
+    if (!site) {
+      throw new CalculationNamedError_('最低賃金未登録', 'マスタ_現場に対象の現場IDが存在しません。現場ID: ' + siteId + '。マスタ_現場に現場ID・現場名・都道府県を登録してください。');
+    }
+    if (String(site['都道府県'] || '').trim() === '') {
+      throw new CalculationNamedError_('最低賃金未登録', 'マスタ_現場の都道府県が未入力です。現場ID: ' + siteId + '。マスタ_現場の都道府県を入力し、マスタ_最低賃金の都道府県表記と一致させてください。');
     }
 
     const previousMinWage = findMinWage_(site['都道府県'], previousRevisionStartDate);
@@ -135,7 +142,7 @@ function findSiteById_(siteId) {
 function findMinWage_(prefecture, targetDate) {
   const record = findEffectiveRecord_(SHEETS.MASTER_MIN_WAGE, '都道府県', prefecture, targetDate, '最低賃金');
   if (!record) {
-    throw new CalculationNamedError_('最低賃金未登録', '最低賃金が見つかりません。都道府県: ' + prefecture + '、基準日: ' + formatDateForMessage_(targetDate));
+    throw new CalculationNamedError_('最低賃金未登録', '最低賃金が見つかりません。都道府県: ' + prefecture + '、基準日: ' + formatDateForMessage_(targetDate) + '。マスタ_最低賃金に、同じ都道府県で基準日以前の適用開始日と最低賃金を登録してください。');
   }
   return requireNumber_(record['最低賃金'], '最低賃金');
 }
@@ -143,7 +150,7 @@ function findMinWage_(prefecture, targetDate) {
 function findCalculationCoefficient_(targetDate) {
   const record = findEffectiveRecord_(SHEETS.MASTER_COEFFICIENT, null, null, targetDate, '法定福利費計算倍率');
   if (!record) {
-    throw new CalculationNamedError_('計算係数未登録', '計算係数が見つかりません。基準日: ' + formatDateForMessage_(targetDate));
+    throw new CalculationNamedError_('計算係数未登録', '計算係数が見つかりません。基準日: ' + formatDateForMessage_(targetDate) + '。マスタ_計算係数に、基準日以前の適用開始日と法定福利費計算倍率を登録してください。');
   }
   return requireNumber_(record['法定福利費計算倍率'], '法定福利費計算倍率');
 }
@@ -174,11 +181,29 @@ function sumActiveWorkTimeTotal_(caseId) {
     return String(detail['使用有無'] || ACTIVE_STATUS.ACTIVE).trim() === ACTIVE_STATUS.ACTIVE;
   });
   if (details.length === 0) {
-    throw new CalculationNamedError_('勤務時間根拠未登録', '使用対象の勤務時間根拠がありません。');
+    throw new CalculationNamedError_('勤務時間根拠未登録', '使用対象の勤務時間根拠がありません。明細_勤務時間根拠 または 入力_案件編集 の勤務時間根拠で、使用有無が「使用」の行を1件以上登録してください。');
   }
   return details.reduce(function(total, detail) {
-    return total + requireNumber_(detail['年間総労働時間'], '年間総労働時間');
+    return total + requireWorkTimeTotal_(detail['年間総労働時間']);
   }, 0);
+}
+
+function requireWorkTimeTotal_(value) {
+  if (value === null || typeof value === 'undefined') {
+    throw new Error('勤務時間根拠の年間総労働時間が未入力です。使用有無が「使用」の明細行には年間総労働時間を入力してください。');
+  }
+  if (typeof value === 'string' && value.trim() === '') {
+    throw new Error('勤務時間根拠の年間総労働時間が未入力です。使用有無が「使用」の明細行には年間総労働時間を入力してください。');
+  }
+  if (value === '') {
+    throw new Error('勤務時間根拠の年間総労働時間が未入力です。使用有無が「使用」の明細行には年間総労働時間を入力してください。');
+  }
+
+  const numberValue = Number(value);
+  if (!Number.isFinite(numberValue)) {
+    throw new Error('勤務時間根拠の年間総労働時間が数値ではありません。年間総労働時間には数値を入力してください。');
+  }
+  return numberValue;
 }
 
 function applyRounding_(value, method) {
