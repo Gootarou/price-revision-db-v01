@@ -160,8 +160,8 @@ function findEffectiveRecord_(sheetName, matchHeader, matchValue, targetDate, va
     const record = rowValuesToObject_(headerMap, row);
     if (matchHeader && String(record[matchHeader]) !== String(matchValue)) return;
     const effectiveDate = parseDateValue_(record['適用開始日']);
-    if (!effectiveDate || effectiveDate.getTime() > targetDate.getTime()) return;
-    if (!bestDate || effectiveDate.getTime() > bestDate.getTime()) {
+    if (!effectiveDate || getDateOnlyKey_(effectiveDate) > getDateOnlyKey_(targetDate)) return;
+    if (!bestDate || getDateOnlyKey_(effectiveDate) > getDateOnlyKey_(bestDate)) {
       best = record;
       bestDate = effectiveDate;
     }
@@ -232,8 +232,12 @@ function parseDateValue_(value) {
   return isNaN(date.getTime()) ? null : date;
 }
 
+function getDateOnlyKey_(date) {
+  return Utilities.formatDate(date, 'Asia/Tokyo', 'yyyyMMdd');
+}
+
 function formatDateForMessage_(date) {
-  return Utilities.formatDate(date, Session.getScriptTimeZone(), 'yyyy/MM/dd');
+  return Utilities.formatDate(date, 'Asia/Tokyo', 'yyyy/MM/dd');
 }
 
 function CalculationNamedError_(processName, message) {
