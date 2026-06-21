@@ -7,7 +7,7 @@ function saveInputCaseEdit() {
   try {
     const ids = saveInputCaseEditCore_(values);
     writeProcessLog('保存成功', ids.caseId, LOG_RESULT.OK, '入力画面の内容を正本シートへ保存しました。');
-    SpreadsheetApp.getUi().alert('保存が完了しました。\n案件ID: ' + ids.caseId + '\nサービスID: ' + ids.serviceId);
+    SpreadsheetApp.getUi().alert('一時保存しました。\n計算は実行していません。');
     return ids;
   } catch (error) {
     writeProcessLog('保存失敗', caseIdForLog, LOG_RESULT.ERROR, error.message);
@@ -26,7 +26,7 @@ function saveAndCalculateInputCaseEdit() {
     const calculatedRecord = calculatePriceRevisionCase(ids.caseId);
     setInputCaseEditCalculationResults(calculatedRecord);
     writeProcessLog('保存して計算成功', ids.caseId, LOG_RESULT.OK, '保存後に計算結果を入力画面へ反映しました。');
-    SpreadsheetApp.getUi().alert('保存して計算が完了しました。\n案件ID: ' + ids.caseId);
+    SpreadsheetApp.getUi().alert('保存し、計算結果を更新しました。');
     return calculatedRecord;
   } catch (error) {
     const targetCaseId = ids ? ids.caseId : caseIdForLog;
@@ -55,6 +55,12 @@ function saveInputCaseEditCore_(values) {
 }
 
 function loadCaseToInputCaseEdit() {
+  const ui = SpreadsheetApp.getUi();
+  const response = ui.alert('現在の入力内容を上書きして、案件を読み込みます。\n実行しますか？', ui.ButtonSet.OK_CANCEL);
+  if (response !== ui.Button.OK) {
+    return;
+  }
+
   const inputValues = getInputCaseEditValues();
   const caseId = String(inputValues.operation['案件ID'] || '').trim();
   try {

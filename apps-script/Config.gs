@@ -6,9 +6,9 @@ const APP_CONFIG = {
   MENU_NAME: '料金改定DB',
   MENU_INITIAL_SETUP: '初期セットアップ',
   MENU_INPUT_SHEET_INITIALIZE: '入力画面初期化',
-  MENU_SAVE: '保存',
+  MENU_SAVE: '一時保存',
   MENU_LOAD_CASE: '案件読込',
-  MENU_SAVE_AND_CALCULATE: '保存して計算',
+  MENU_SAVE_AND_CALCULATE: '保存・計算実行',
   MENU_WORK_TIME_BASIS_CHECK: '勤務時間根拠を確認',
   MENU_DOCUMENT_TRANSFER_CHECK_UPDATE: '文書転記前確認を更新',
 };

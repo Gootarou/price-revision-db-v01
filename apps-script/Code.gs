@@ -34,6 +34,12 @@ function runInitialSetup() {
  * Menu entry point for Phase 2 input/edit screen initialization.
  */
 function runInputSheetInitialize() {
+  const ui = SpreadsheetApp.getUi();
+  const response = ui.alert('現在の入力内容を消去して、入力画面を初期化します。\n実行しますか？', ui.ButtonSet.OK_CANCEL);
+  if (response !== ui.Button.OK) {
+    return;
+  }
+
   try {
     initializeInputCaseEditSheet();
     writeProcessLog('入力画面初期化', '', LOG_RESULT.OK, SHEETS.INPUT_CASE_EDIT + ' の入力・編集画面を初期化しました。');
