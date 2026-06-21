@@ -45,6 +45,7 @@ function updateDocumentTransferCheckViewCore_() {
   records.sort(compareDocumentTransferCheckRecords_);
   replaceDocumentTransferCheckRows_(targetSheet, targetHeaders, records);
   formatDocumentTransferCheckSheet_(targetSheet, targetHeaders);
+  applyDocumentTransferCheckConditionalFormatting_(targetSheet);
 
   return {
     outputCount: records.length,

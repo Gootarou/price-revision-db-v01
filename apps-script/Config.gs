@@ -100,6 +100,15 @@ const NEGOTIATION_STATUS_OPTIONS = [
   NEGOTIATION_STATUS.PENDING,
 ];
 
+
+const CONDITIONAL_FORMAT_COLORS = {
+  ERROR: '#f4cccc',
+  WARNING: '#fff2cc',
+  OK: '#d9ead3',
+  MUTED: '#eeeeee',
+  INFO: '#d9eaf7',
+};
+
 const LOG_RESULT = {
   OK: 'OK',
   ERROR: 'ERROR',
