@@ -143,6 +143,7 @@ function initializeInputCaseEditSheet() {
   applyInputSheetDataValidations_(sheet);
   applyInputSheetNumberFormats_(sheet);
   applyInputSheetLayoutStyle_(sheet);
+  applyInputSheetConditionalFormatting_(sheet);
   spreadsheet.setActiveSheet(sheet);
 }
 
@@ -439,6 +440,7 @@ function setWorkTimeInputSectionValues_(sheet, workTimeDetails) {
   sheet.getRange(INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_START_ROW, 1, INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_ROWS, fields.length).setValues(rows);
   applyWorkTimeHelperFormulas_(sheet, workTimeDetails || []);
   applyInputSheetDataValidations_(sheet);
+  applyInputSheetConditionalFormatting_(sheet);
 }
 
 function setInputCaseEditCalculationResults(caseRecord) {
@@ -448,4 +450,74 @@ function setInputCaseEditCalculationResults(caseRecord) {
     throw new Error('入力画面が見つかりません。入力画面初期化を実行してください。');
   }
   setVerticalInputSectionValuesWithBlank_(sheet, INPUT_SHEET_LAYOUT.RESULT_START_ROW, INPUT_FIELD_GROUPS.RESULTS, caseRecord);
+}
+
+
+function applyInputSheetConditionalFormatting_(sheet) {
+  if (!sheet) return;
+  const managedRanges = getInputSheetConditionalFormattingRanges_(sheet);
+  const rules = removeConditionalFormattingRulesForRanges_(sheet.getConditionalFormatRules(), managedRanges);
+  addInputResultTextRule_(rules, sheet, '計算結果状態', CALCULATION_STATUS.ERROR, CONDITIONAL_FORMAT_COLORS.ERROR);
+  addInputResultTextRule_(rules, sheet, '計算結果状態', CALCULATION_STATUS.OUT_OF_SCOPE, CONDITIONAL_FORMAT_COLORS.MUTED);
+  addInputResultTextRule_(rules, sheet, '計算結果状態', CALCULATION_STATUS.OK, CONDITIONAL_FORMAT_COLORS.OK);
+  addInputResultTextRule_(rules, sheet, '確認状態', CONFIRMATION_STATUS.NOT_CONFIRMED, CONDITIONAL_FORMAT_COLORS.WARNING);
+  addInputResultTextRule_(rules, sheet, '確認状態', CONFIRMATION_STATUS.CONFIRMED, CONDITIONAL_FORMAT_COLORS.OK);
+  addInputResultTextRule_(rules, sheet, '文書転記OK', TRANSFER_STATUS.NG, CONDITIONAL_FORMAT_COLORS.ERROR);
+  addInputResultTextRule_(rules, sheet, '文書転記OK', TRANSFER_STATUS.OK, CONDITIONAL_FORMAT_COLORS.OK);
+  addInputResultNotBlankRule_(rules, sheet, 'エラー内容', CONDITIONAL_FORMAT_COLORS.ERROR);
+  addInputWorkTimeInactiveRule_(rules, sheet);
+  sheet.setConditionalFormatRules(rules);
+}
+
+function getInputSheetConditionalFormattingRanges_(sheet) {
+  const ranges = [];
+  ['計算結果状態', '確認状態', '文書転記OK', 'エラー内容'].forEach(function(field) {
+    const row = getInputResultFieldRow_(field);
+    if (row) ranges.push(sheet.getRange(row, INPUT_SHEET_LAYOUT.INPUT_COLUMN));
+  });
+  ranges.push(sheet.getRange(
+    INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_START_ROW,
+    1,
+    INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_ROWS,
+    INPUT_FIELD_GROUPS.WORK_TIME.length
+  ));
+  return ranges;
+}
+
+function addInputResultTextRule_(rules, sheet, field, text, background) {
+  const row = getInputResultFieldRow_(field);
+  if (!row) return;
+  rules.push(SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo(text)
+    .setBackground(background)
+    .setRanges([sheet.getRange(row, INPUT_SHEET_LAYOUT.INPUT_COLUMN)])
+    .build());
+}
+
+function addInputResultNotBlankRule_(rules, sheet, field, background) {
+  const row = getInputResultFieldRow_(field);
+  if (!row) return;
+  rules.push(SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=$B$' + row + '<>""')
+    .setBackground(background)
+    .setRanges([sheet.getRange(row, INPUT_SHEET_LAYOUT.INPUT_COLUMN)])
+    .build());
+}
+
+function addInputWorkTimeInactiveRule_(rules, sheet) {
+  const activeStatusColumn = INPUT_FIELD_GROUPS.WORK_TIME.indexOf('使用有無') + 1;
+  if (activeStatusColumn === 0) return;
+  const activeStatusColumnLetter = columnToLetter_(activeStatusColumn);
+  const startRow = INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_START_ROW;
+  rules.push(SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=$' + activeStatusColumnLetter + startRow + '="' + ACTIVE_STATUS.INACTIVE + '"')
+    .setBackground(CONDITIONAL_FORMAT_COLORS.MUTED)
+    .setRanges([sheet.getRange(startRow, 1, INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_ROWS, INPUT_FIELD_GROUPS.WORK_TIME.length)])
+    .build());
+}
+
+function getInputResultFieldRow_(field) {
+  const fieldIndex = INPUT_FIELD_GROUPS.RESULTS.indexOf(field);
+  if (fieldIndex === -1) return null;
+  return INPUT_SHEET_LAYOUT.RESULT_START_ROW + 2 + fieldIndex;
 }
