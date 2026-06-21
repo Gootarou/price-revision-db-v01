@@ -142,7 +142,7 @@ function initializeInputCaseEditSheet() {
   buildVerticalInputSection_(sheet, INPUT_SHEET_LAYOUT.RESULT_START_ROW, '計算結果表示エリア', INPUT_FIELD_GROUPS.RESULTS);
 
   applyInputSheetDefaults_(sheet);
-  applyWorkTimeHelperFormulas_(sheet, []);
+  applyWorkTimeHelperFormulas_(sheet);
   applyInputSheetDataValidations_(sheet);
   applyInputSheetNumberFormats_(sheet);
   applyInputSheetLayoutStyle_(sheet);
@@ -397,12 +397,11 @@ function buildListValidation_(options) {
     .build();
 }
 
-function applyWorkTimeHelperFormulas_(sheet, rowsWithSavedDetails) {
+function applyWorkTimeHelperFormulas_(sheet) {
   const detailStartRow = INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_START_ROW;
   const workDaysColumn = INPUT_FIELD_GROUPS.WORK_TIME.indexOf('勤務日数/年') + 1;
   const annualHoursColumn = INPUT_FIELD_GROUPS.WORK_TIME.indexOf('年間総労働時間') + 1;
   for (let i = 0; i < INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_ROWS; i += 1) {
-    if (rowsWithSavedDetails && rowsWithSavedDetails[i]) continue;
     const row = detailStartRow + i;
     sheet.getRange(row, workDaysColumn).setFormulaR1C1('=IF(RC[-1]="","",365-RC[-1])');
     sheet.getRange(row, annualHoursColumn).setFormulaR1C1('=IF(OR(RC[-3]="",RC[-2]="",RC[-1]=""),"",RC[-3]*RC[-2]*RC[-1])');
@@ -441,7 +440,7 @@ function setWorkTimeInputSectionValues_(sheet, workTimeDetails) {
     }));
   }
   sheet.getRange(INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_START_ROW, 1, INPUT_SHEET_LAYOUT.WORK_TIME_DETAIL_ROWS, fields.length).setValues(rows);
-  applyWorkTimeHelperFormulas_(sheet, workTimeDetails || []);
+  applyWorkTimeHelperFormulas_(sheet);
   applyInputSheetDataValidations_(sheet);
   applyInputSheetConditionalFormatting_(sheet);
 }
