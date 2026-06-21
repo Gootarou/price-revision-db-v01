@@ -9,6 +9,7 @@ function setupInitialSheets() {
     ensureHeaderRow_(sheet, getHeadersForSheet_(sheetName));
   });
 
+  applyDataPriceRevisionCaseValidations_(spreadsheet.getSheetByName(SHEETS.DATA_PRICE_REVISION_CASE));
   reorderManagedSheets_(spreadsheet);
 }
 
@@ -72,6 +73,20 @@ function getHeaderMap(sheet) {
     }
     return map;
   }, {});
+}
+
+function applyDataPriceRevisionCaseValidations_(sheet) {
+  if (!sheet) return;
+  const headerMap = getHeaderMap(sheet);
+  const maxRows = Math.max(sheet.getMaxRows() - 1, 1);
+  if (headerMap['確認状態']) {
+    sheet.getRange(2, headerMap['確認状態'], maxRows, 1)
+      .setDataValidation(buildListValidation_(CONFIRMATION_STATUS_OPTIONS));
+  }
+  if (headerMap['交渉状況']) {
+    sheet.getRange(2, headerMap['交渉状況'], maxRows, 1)
+      .setDataValidation(buildListValidation_(NEGOTIATION_STATUS_OPTIONS));
+  }
 }
 
 function findRowByHeaderValue_(sheet, headerName, targetValue) {
